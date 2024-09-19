@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Dos Chatbots</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #f0f0f5;
+        }
+        .chat-container {
+            width: 45%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 1.5rem;
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .chat-log {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+        .user-input {
+            width: calc(100% - 30px); /* Ajustado para mejor alineación */
+            padding: 12px;
+            margin-right: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .send-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 16px;
+        }
+        .send-btn:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
+        }
+        .chat-log div {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+        .chat-log strong {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Wikipedia Bot -->
+    <div class="chat-container">
+        <h2>Chatbot de Wikipedia</h2>
+        <div class="chat-log" id="wikipedia-log">
+            <div><strong>Chatbot:</strong> Hola, soy el chatbot de Wikipedia. Dime una palabra y buscaré información.</div>
+        </div>
+        <input type="text" id="wikipedia-input" class="user-input" placeholder="Escribe algo...">
+        <button class="send-btn" onclick="enviarMensajeWikipedia()">Enviar</button>
+    </div>
+
+    <!-- Seguros Bot -->
+    <div class="chat-container">
+        <h2>Chatbot de Seguros</h2>
+        <div class="chat-log" id="seguros-log">
+            <div><strong>Chatbot:</strong> Hola, soy el chatbot de seguros. ¿Tienes dudas sobre seguros?</div>
+        </div>
+        <input type="text" id="seguros-input" class="user-input" placeholder="Escribe algo...">
+        <button class="send-btn" onclick="enviarMensajeSeguros()">Enviar</button>
+    </div>
+
+    <script>
+        // Función para enviar mensajes en el chatbot de Wikipedia
+        function enviarMensajeWikipedia() {
+            var userInput = document.getElementById('wikipedia-input').value;
+            var chatLog = document.getElementById('wikipedia-log');
+            if (userInput.trim() === "") return;
+
+            var userMessageDiv = document.createElement('div');
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${userInput}`;
+            chatLog.appendChild(userMessageDiv);
+
+            // Enviar el mensaje al servidor
+            fetch('/chatbot_wikipedia', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `user_input=${userInput}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                var botMessageDiv = document.createElement('div');
+                botMessageDiv.innerHTML = `<strong>Chatbot:</strong> ${data.respuesta}`;
+                chatLog.appendChild(botMessageDiv);
+                document.getElementById('wikipedia-input').value = "";
+                chatLog.scrollTop = chatLog.scrollHeight;
+            });
+        }
+
+        // Función para enviar mensajes en el chatbot de Seguros
+        function enviarMensajeSeguros() {
+            var userInput = document.getElementById('seguros-input').value;
+            var chatLog = document.getElementById('seguros-log');
+            if (userInput.trim() === "") return;
+
+            var userMessageDiv = document.createElement('div');
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${userInput}`;
+            chatLog.appendChild(userMessageDiv);
+
+            // Enviar el mensaje al servidor
+            fetch('/chatbot_seguros', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `user_input=${userInput}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                var botMessageDiv = document.createElement('div');
+                botMessageDiv.innerHTML = `<strong>Chatbot:</strong> ${data.respuesta}`;
+                chatLog.appendChild(botMessageDiv);
+                document.getElementById('seguros-input').value = "";
+                chatLog.scrollTop = chatLog.scrollHeight;
+            });
+        }
+
+        // Habilitar el envío con "Enter" para el chatbot de Wikipedia
+        document.getElementById('wikipedia-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                enviarMensajeWikipedia();
+                e.preventDefault();
+            }
+        });
+
+        // Habilitar el envío con "Enter" para el chatbot de Seguros
+        document.getElementById('seguros-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                enviarMensajeSeguros();
+                e.preventDefault();
+            }
+        });
+
+        // Mostrar menú al cargar la página en el chatbot de seguros
+        window.onload = function() {
+            fetch('/chatbot_seguros', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'user_input=menu'
+            })
+            .then(response => response.json())
+            .then(data => {
+                var chatLog = document.getElementById('seguros-log');
+                var botMessageDiv = document.createElement('div');
+                botMessageDiv.innerHTML = `<strong>Chatbot:</strong> ${data.respuesta}`;
+                chatLog.appendChild(botMessageDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            });
+        };
+    </script>
+</body>
+</html>
